@@ -5,6 +5,7 @@ export class AdminController {
     this.adminModel = adminModel;
   }
 
+  // Autentifiación
   register = async (req, res) => {
     const { username, email, password } = req.body;
     try {
@@ -85,6 +86,34 @@ export class AdminController {
   }
 
 
+  // Administrar Workers
+  newWorker = async (req, res) => {
+    const { username, email, password } = req.body;
+    const id_admin = req.session.user.id;
+
+    try {
+      const result = await this.adminModel.newWorker({ username, email, password, id_admin });
+
+      if (!result) {
+        return res.status(400).json({ message: "Error al registrar un nuevo operador." });
+      }
+
+      if (result.usernameExists) {
+        return res.status(400).json({ message: `Ya existe un operador con el username: ${username}` });
+      }
+
+      if (result.emailExists) {
+        return res.status(400).json({ message: `Ya existe un operador con el email: ${email}` });
+      }
+
+
+      res.json(result);
+
+    } catch (error) {
+      return res.status(500).json({ message: "Error interno del servidor.", error: error.message });
+    }
+  }
+
   getAllWorkers = async (req, res) => {
     const { username, email, id_admin } = req.query;
 
@@ -115,33 +144,6 @@ export class AdminController {
       if (!result) {
         return res.status(400).json({ message: `No se encontró el worker con el id: ${id}.` });
       }
-
-      res.json(result);
-
-    } catch (error) {
-      return res.status(500).json({ message: "Error interno del servidor.", error: error.message });
-    }
-  }
-
-  newWorker = async (req, res) => {
-    const { username, email, password } = req.body;
-    const id_admin = req.session.user.id;
-
-    try {
-      const result = await this.adminModel.newWorker({ username, email, password, id_admin });
-
-      if (!result) {
-        return res.status(400).json({ message: "Error al registrar un nuevo operador." });
-      }
-
-      if (result.usernameExists) {
-        return res.status(400).json({ message: `Ya existe un operador con el username: ${username}` });
-      }
-
-      if (result.emailExists) {
-        return res.status(400).json({ message: `Ya existe un operador con el email: ${email}` });
-      }
-
 
       res.json(result);
 
@@ -199,10 +201,135 @@ export class AdminController {
         return res.status(400).json({ message: "No se encontraron usuarios." });
       }
 
-      res.json({message: `Worker con el id: ${id} eliminado existosamente.`});
+      res.json({ message: `Worker con el id: ${id} eliminado existosamente.` });
 
     } catch (error) {
       return res.status(500).json({ message: "Error interno del servidor.", error: error.message });
     }
   }
+
+
+  // Administrar processing centers
+  newProcessCtr = async (req, res) => {
+    const { name, address, town } = req.body;
+    const id_admin = req.session.user.id;
+
+    try {
+      const result = await this.adminModel.newProcessCtr({ name, address, town, id_admin });
+
+      if (!result) {
+        return res.status(400).json({ message: "Error al registrar un centro de procesamiento." });
+      }
+
+      if (result.nameExists) {
+        return res.status(400).json({ message: `Ya existe un centro de procesamiento con el name: ${name}` });
+      }
+
+      if (result.addressExists) {
+        return res.status(400).json({ message: `Ya existe un centro de procesamiento con el address: ${address}` });
+      }
+
+
+      res.json(result);
+
+    } catch (error) {
+      return res.status(500).json({ message: "Error interno del servidor.", error: error.message });
+    }
+  }
+
+  getAllProcessCtr = async (req, res) => {
+    const { name, address, town, id_admin } = req.query;
+
+    try {
+      const result = await this.adminModel.getAllProcessCtr({ name, address, town, id_admin });
+
+      if (!result) {
+        return res.status(400).json({ message: "No se encontraron centros de procesamiento." });
+      }
+
+      res.json(result);
+
+    } catch (error) {
+      return res.status(500).json({ message: "Error interno del servidor.", error: error.message });
+    }
+  }
+
+  getProcessCtrById = async (req, res) => {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({ message: "Ingrese la id." });
+    }
+
+    try {
+      const result = await this.adminModel.getProcessCtrById({ id });
+
+      if (!result) {
+        return res.status(400).json({ message: `No se encontró el centro de procesamiento con el id: ${id}.` });
+      }
+
+      res.json(result);
+
+    } catch (error) {
+      return res.status(500).json({ message: "Error interno del servidor.", error: error.message });
+    }
+  }
+
+  editProcessCtrById = async (req, res) => {
+    const { id } = req.params;
+    const { name, address, town } = req.body;
+
+    if (!id) {
+      return res.status(400).json({ message: "Ingrese la id." });
+    }
+
+    try {
+      const result = await this.adminModel.editProcessCtrById({ id, name, address, town });
+
+      if (!result) {
+        return res.status(400).json({ message: `No se encontró el centro de procesamiento con el id: ${id}.` });
+      }
+
+      if (result.nameExists) {
+        return res.status(400).json({ message: `Ya existe un centro de procesamiento con el nombre: ${name}` });
+      }
+
+      if (result.addressExists) {
+        return res.status(400).json({ message: `Ya existe un centro de procesamiento con la dirección: ${address}` });
+      }
+
+      if (result.notChanged) {
+        return res.status(304).json({ message: `No se realizaron cambios.` });
+      }
+
+      res.json(result);
+
+    } catch (error) {
+      return res.status(500).json({ message: "Error interno del servidor.", error: error.message });
+    }
+  }
+
+  deleteProcessCtrById = async (req, res) => {
+    const { id } = req.params;
+
+
+    if (!id) {
+      return res.status(400).json({ message: "Ingrese la id." });
+    }
+
+    try {
+      const result = await this.adminModel.deleteProcessCtrById({ id });
+
+      if (!result) {
+        return res.status(400).json({ message: "No se encontraron centros de procesamiento." });
+      }
+
+      res.json({ message: `Centro de procesamiento con el id: ${id} eliminado existosamente.` });
+
+    } catch (error) {
+      return res.status(500).json({ message: "Error interno del servidor.", error: error.message });
+    }
+  }
+
+
 }

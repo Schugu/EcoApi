@@ -9,7 +9,8 @@ const config = {
   port: 3306,
   user: 'root',
   password: process.env.MYSQL_PASSWORD,
-  database: 'ecoapi'
+  database: 'ecoapi',
+  charset: 'utf8mb4'
 };
 
 const connection = await mysql.createConnection(config);
