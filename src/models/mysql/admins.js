@@ -184,72 +184,72 @@ export class AdminModel {
         `SELECT * FROM worker WHERE id = UUID_TO_BIN(?)`,
         [id]
       );
-  
+
       if (dataWorker.length === 0) {
         return null;
       }
-  
+
       if (username) {
         const [dataWorkers] = await connection.query(
           `SELECT * FROM worker WHERE username = ? AND id != UUID_TO_BIN(?)`,
           [username, id]
         );
-  
+
         if (dataWorkers.length > 0) {
           return { usernameExists: true };
         }
       }
-  
+
       if (email) {
         const [dataWorkers] = await connection.query(
           `SELECT * FROM worker WHERE email = ? AND id != UUID_TO_BIN(?)`,
           [email, id]
         );
-  
+
         if (dataWorkers.length > 0) {
           return { emailExists: true };
         }
       }
-  
+
       // Construir dinámicamente la consulta UPDATE
       const fieldsToUpdate = [];
       const valuesToUpdate = [];
-  
+
       if (username) {
         fieldsToUpdate.push('username = ?');
         valuesToUpdate.push(username);
       }
-  
+
       if (email) {
         fieldsToUpdate.push('email = ?');
         valuesToUpdate.push(email);
       }
-  
+
       if (password) {
         fieldsToUpdate.push('password = ?');
         valuesToUpdate.push(password);
         fieldsToUpdate.push('passwordChanged = ?');
         valuesToUpdate.push(false);
       }
-  
+
       // Si no hay campos para actualizar, devolver notChanged: true
       if (fieldsToUpdate.length === 0) {
         return { notChanged: true };
       }
-  
+
       // Ejecutar la consulta UPDATE si hay campos que actualizar
       const query = `UPDATE worker SET ${fieldsToUpdate.join(', ')} WHERE id = UUID_TO_BIN(?)`;
       valuesToUpdate.push(id);  // El id siempre debe estar presente en la condición WHERE
-  
+
       await connection.query(query, valuesToUpdate);
-  
+
       // Obtener el worker actualizado
       const [updatedWorker] = await connection.query(
         `SELECT BIN_TO_UUID(id) as id, username, email, password, BIN_TO_UUID(id_admin) as id_admin, created_at, passwordChanged FROM worker WHERE id = UUID_TO_BIN(?)`,
         [id]
       );
-  
-      return updatedWorker; 
+
+      return updatedWorker;
     } catch (error) {
       console.log(error);
       throw new Error('Error al editar el worker.');
@@ -409,67 +409,67 @@ export class AdminModel {
         `SELECT * FROM processing_centers WHERE id = UUID_TO_BIN(?)`,
         [id]
       );
-  
+
       if (dataProcessCtr.length === 0) {
-        return null; 
+        return null;
       }
-  
-      
+
+
       if (name) {
         const [existingProcessCtr] = await connection.query(
           `SELECT * FROM processing_centers WHERE LOWER(name) = LOWER(?) AND id != UUID_TO_BIN(?)`,
           [name, id]
         );
-  
+
         if (existingProcessCtr.length > 0) {
-          return { nameExists: true };  
+          return { nameExists: true };
         }
       }
-  
+
       if (address) {
         const [existingProcessCtr] = await connection.query(
           `SELECT * FROM processing_centers WHERE LOWER(address) = LOWER(?) AND id != UUID_TO_BIN(?)`,
           [address, id]
         );
-  
+
         if (existingProcessCtr.length > 0) {
-          return { addressExists: true }; 
+          return { addressExists: true };
         }
       }
-  
+
       const fieldsToUpdate = [];
       const valuesToUpdate = [];
-  
+
       if (name) {
         fieldsToUpdate.push('name = ?');
         valuesToUpdate.push(name);
       }
-  
+
       if (address) {
         fieldsToUpdate.push('address = ?');
         valuesToUpdate.push(address);
       }
-  
+
       if (town) {
         fieldsToUpdate.push('town = ?');
         valuesToUpdate.push(town);
       }
-  
+
       if (fieldsToUpdate.length === 0) {
         return { notChanged: true };
       }
-  
+
       const query = `UPDATE processing_centers SET ${fieldsToUpdate.join(', ')} WHERE id = UUID_TO_BIN(?)`;
-      valuesToUpdate.push(id); 
-  
+      valuesToUpdate.push(id);
+
       await connection.query(query, valuesToUpdate);
-  
+
       const [updatedProcessCtr] = await connection.query(
         `SELECT BIN_TO_UUID(id) as id, name, address, town, BIN_TO_UUID(id_admin) as id_admin, created_at FROM processing_centers WHERE id = UUID_TO_BIN(?)`,
         [id]
       );
-  
-      return updatedProcessCtr; 
+
+      return updatedProcessCtr;
     } catch (error) {
       console.log(error);
       throw new Error('Error al editar el centro de procesamiento.');
@@ -478,12 +478,12 @@ export class AdminModel {
 
   static async deleteProcessCtrById({ id }) {
     try {
-      const [dataWorker] = await connection.query(
+      const [dataProcessCtr] = await connection.query(
         `SELECT * FROM processing_centers WHERE id = UUID_TO_BIN(?)`,
         [id]
       );
 
-      if (dataWorker.length === 0) {
+      if (dataProcessCtr.length === 0) {
         return null;
       }
 
@@ -492,9 +492,100 @@ export class AdminModel {
         [id]
       );
 
-      return dataWorker;
+      return dataProcessCtr;
     } catch (error) {
       throw new Error('Error al eliminar el centro de procesamiento.');
+    }
+  }
+
+  static async assignWorkerToCenter({ id, worker_id }) {
+    try {
+      const [dataProcessCtr] = await connection.query(
+        `SELECT * FROM processing_centers WHERE id = UUID_TO_BIN(?)`,
+        [id]
+      );
+
+      if (dataProcessCtr.length === 0) {
+        return { processCtrNotExists: true };
+      }
+
+      const [dataWorker] = await connection.query(
+        `SELECT * FROM worker WHERE id = UUID_TO_BIN(?)`,
+        [worker_id]
+      );
+
+      if (dataWorker.length === 0) {
+        return { workerNotExists: true };
+      }
+
+      const [foundWorkerOnProcessCtr] = await connection.query(
+        `SELECT * FROM processing_center_workers WHERE worker_id = UUID_TO_BIN(?)`, [worker_id]
+      );
+
+      if (foundWorkerOnProcessCtr.length > 0) {
+        return { isWorkerAssigned: true }
+      }
+
+
+      await connection.query(
+        `INSERT INTO processing_center_workers (worker_id, process_center_id)
+         VALUES (UUID_TO_BIN(?), UUID_TO_BIN(?))`,
+        [worker_id, id]
+      );
+
+      const [assignedWorker] = await connection.query(
+        `SELECT BIN_TO_UUID(id) as id,
+                BIN_TO_UUID(worker_id) as worker_id, 
+                BIN_TO_UUID(process_center_id) as process_center_id,
+                assigned_at
+         FROM processing_center_workers 
+         WHERE worker_id = UUID_TO_BIN(?)`,
+        [worker_id]
+      );
+
+      return assignedWorker;
+    } catch (error) {
+      console.log(error);
+      throw new Error('Error al asignar un worker en el centro de procesamiento.');
+    }
+  }
+
+  static async deleteWorkerToCenter({ id, worker_id }) {
+    try {
+      const [dataProcessCtr] = await connection.query(
+        `SELECT * FROM processing_centers WHERE id = UUID_TO_BIN(?)`,
+        [id]
+      );
+
+      if (dataProcessCtr.length === 0) {
+        return { processCtrNotExists: true };
+      }
+
+      const [dataWorker] = await connection.query(
+        `SELECT * FROM worker WHERE id = UUID_TO_BIN(?)`,
+        [worker_id]
+      );
+
+      if (dataWorker.length === 0) {
+        return { workerNotExists: true };
+      }
+
+      const [foundWorkerOnProcessCtr] = await connection.query(
+        `SELECT * FROM processing_center_workers WHERE worker_id = UUID_TO_BIN(?)`, [worker_id]
+      );
+
+      if (foundWorkerOnProcessCtr.length === 0) {
+        return { workerNotAssigned: true };
+      }
+
+      await connection.query(
+        `DELETE FROM processing_center_workers WHERE worker_id = UUID_TO_BIN(?)`,
+        [worker_id]
+      );
+
+      return { ok: true };
+    } catch (error) {
+      throw new Error('Error al asignar un worker en el centro de procesamiento.');
     }
   }
 }

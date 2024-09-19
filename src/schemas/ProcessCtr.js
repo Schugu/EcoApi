@@ -20,4 +20,6 @@ export const ProcessCtrSchema = z.object({
     .max(250, { message: "El town no debe tener más de 255 caracteres." }),
 });
 
+
+
 export const updatedProcessCtrSchema = ProcessCtrSchema.partial();

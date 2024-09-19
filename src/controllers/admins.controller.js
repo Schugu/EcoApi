@@ -332,4 +332,69 @@ export class AdminController {
   }
 
 
+  assignWorkerToCenter = async (req, res) => {
+    const { id } = req.params;
+    const { worker_id } = req.body;
+
+
+    try {
+      const result = await this.adminModel.assignWorkerToCenter({ id, worker_id });
+
+      if (!result) {
+        return res.status(400).json({ message: "Error al registrar un centro de procesamiento." });
+      }
+
+      if (result.processCtrNotExists) {
+        return res.status(400).json({ message: `No existe un centro de procesamiento con el id: ${id}` });
+      }
+
+      if (result.workerNotExists) {
+        return res.status(400).json({ message: `No existe un worker con el id: ${worker_id}` });
+      }
+
+      if (result.isWorkerAssigned) {
+        return res.status(400).json({ message: `El worker con el id: ${worker_id} ya esta asignado a un centro de procesamiento.` });
+      }
+
+
+      res.json(result);
+
+    } catch (error) {
+      return res.status(500).json({ message: "Error interno del servidor.", error: error.message });
+    }
+
+
+  }
+
+  deleteWorkerToCenter = async (req, res) => {
+    const { id, worker_id } = req.params;
+
+    try {
+      const result = await this.adminModel.deleteWorkerToCenter({ id, worker_id });
+
+
+      if (!result) {
+        return res.status(400).json({ message: "Error al registrar un centro de procesamiento." });
+      }
+
+      if (result.processCtrNotExists) {
+        return res.status(400).json({ message: `No existe un centro de procesamiento con el id: ${id}` });
+      }
+
+      if (result.workerNotExists) {
+        return res.status(400).json({ message: `No existe un worker con el id: ${worker_id}` });
+      }
+
+      if (result.workerNotAssigned) {
+        return res.status(400).json({ message: `El worker con el id: ${worker_id} no esta asignado a un centro de procesamiento.` });
+      }
+
+      if (result.ok) {
+        res.json({ message: `Worker con el id: ${id} des-asignado existosamente.` });
+      }
+
+    } catch (error) {
+      return res.status(500).json({ message: "Error interno del servidor.", error: error.message });
+    }
+  }
 }
