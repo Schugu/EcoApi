@@ -40,6 +40,8 @@ export const createAdminRouter = ({ adminModel }) => {
 
   // Administración de workers en process centers
   adminsRouter.post('/processCtr/:id/workers', authRequire, validateParamsSchema(idSchemaUUID), validateSchema(worker_idSchemaUUID), adminController.assignWorkerToCenter);
+  adminsRouter.get('/processCtr/:id/workers', authRequire, validateParamsSchema(idSchemaUUID), adminController.getAllWorkersOnProcessCtr);
+  adminsRouter.get('/processCtr/workers/assignments', authRequire, adminController.getAllWorkersAssignments);
   adminsRouter.delete('/processCtr/:id/workers/:worker_id', authRequire, validateParamsSchema(idAndWorkerIdSchemaUUID), adminController.deleteWorkerToCenter);
 
 

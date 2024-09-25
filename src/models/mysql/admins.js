@@ -588,4 +588,56 @@ export class AdminModel {
       throw new Error('Error al asignar un worker en el centro de procesamiento.');
     }
   }
+
+  static async getAllWorkersOnProcessCtr({ id }) {
+    try {
+      const [dataProcessCtr] = await connection.query(
+        `SELECT * FROM processing_centers WHERE id = UUID_TO_BIN(?)`,
+        [id]
+      );
+
+      if (dataProcessCtr.length === 0) {
+        return { processCtrNotExists: true };
+      }
+
+      const [dataWorkersOnProccesCtr] = await connection.query(
+        `SELECT BIN_TO_UUID(w.id) AS worker_id,            
+          w.username AS worker_username, 
+          BIN_TO_UUID(pc.id) AS process_center_id,    
+          pc.name AS process_center_name, 
+          pcw.assigned_at
+        FROM processing_center_workers pcw
+        JOIN worker w ON pcw.worker_id = w.id
+        JOIN processing_centers pc ON pcw.process_center_id = pc.id
+        WHERE pc.id = UUID_TO_BIN(?)`,[id]
+      )
+
+      return dataWorkersOnProccesCtr;
+
+
+    } catch (error) {
+      throw new Error('Error al encotnrar workers en el centro de procesamiento.');
+    }
+  }
+
+  static async getAllWorkersAssignments() {
+    try {
+      const [dataWorkersOnProccesCtr] = await connection.query(
+        `SELECT BIN_TO_UUID(w.id) AS worker_id,    
+          w.username AS worker_username,       
+          BIN_TO_UUID(pc.id) AS process_center_id,   
+          pc.name AS process_center_name, 
+          pcw.assigned_at                           
+        FROM processing_center_workers pcw
+        JOIN worker w ON pcw.worker_id = w.id          
+        JOIN processing_centers pc ON pcw.process_center_id = pc.id`
+      )
+
+      return dataWorkersOnProccesCtr;
+
+
+    } catch (error) {
+      throw new Error('Error al encotnrar workers asignados en centros de procesamiento.');
+    }
+  }
 }

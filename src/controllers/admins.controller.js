@@ -397,4 +397,38 @@ export class AdminController {
       return res.status(500).json({ message: "Error interno del servidor.", error: error.message });
     }
   }
+
+  getAllWorkersOnProcessCtr = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+      const result = await this.adminModel.getAllWorkersOnProcessCtr({ id });
+
+      if (!result) {
+        res.status(400).json({ message: "No se encontraron usuarios asignados al centro de procesamiento." });
+      }
+
+      if (result.processCtrNotExists) {
+        return res.status(400).json({ message: `No existe un centro de procesamiento con el id: ${id}` });
+      }
+
+      res.json(result);
+    } catch (error) {
+      return res.status(500).json({ message: "Error interno del servidor.", error: error.message });
+    }
+  }
+
+  getAllWorkersAssignments = async (req, res) => {
+    try {
+      const result = await this.adminModel.getAllWorkersAssignments();
+
+      if (!result) {
+        res.status(400).json({ message: "No se encontraron usuarios asignados al centro de procesamiento." });
+      }
+
+      res.json(result);
+    } catch (error) {
+      return res.status(500).json({ message: "Error interno del servidor.", error: error.message });
+    }
+  }
 }
