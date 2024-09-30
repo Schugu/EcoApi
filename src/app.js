@@ -4,12 +4,16 @@ import cors from 'cors';
 import logger from 'morgan';
 import cookieParser from 'cookie-parser';
 
+import { authRequire } from "./middlewares/validateToken.js";
+
 import { createWorkerRouter } from './routes/workers.routes.js';
 import { createAdminRouter } from './routes/admins.routes.js';
+import { createAuthRouter } from './routes/auth.routes.js';
+import { createProcessCtrRouter } from './routes/processCtr.routes.js';
 
 dotenv.config();
 
-export const createApp = ({ workerModel, adminModel }) => {
+export const createApp = ({ workerModel, adminModel, processCtrModel }) => {
   const PORT = parseInt(process.env.PORT ?? '3000', 10);
   const HOST = process.env.HOST ?? 'localhost';
   const CORS_ORIGIN = process.env.CORS_ORIGIN ?? 'http://localhost:5173';
@@ -30,12 +34,14 @@ export const createApp = ({ workerModel, adminModel }) => {
 
 
   // Rutas
-  app.get('/', (req, res)=>{
+  app.get('/', (req, res) => {
     res.send('Hola');
   });
 
-  app.use('/api/worker', createWorkerRouter({ workerModel }));
-  app.use('/api/admin', createAdminRouter({ adminModel }));
+  app.use('/api', createAuthRouter({ adminModel, workerModel }));
+  app.use('/api/admin', authRequire(['admin']), createAdminRouter({ adminModel }));
+  app.use('/api/worker', authRequire(['admin']), createWorkerRouter({ workerModel }));
+  app.use('/api/processCtr', authRequire(['admin']), createProcessCtrRouter({ processCtrModel }));
 
   // Manejo de rutas no encontradas
   app.use((req, res) => {

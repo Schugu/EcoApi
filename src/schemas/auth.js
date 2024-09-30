@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const adminSchema = z.object({
+export const authSchema = z.object({
   username: z.string({
     invalid_type_error: "El username debe ser texto.",
     required_error: "El username es requerido."
@@ -23,7 +23,7 @@ export const adminSchema = z.object({
     .regex(/[@$!%*?&.]/, { message: "La contraseña debe contener al menos un carácter especial (@, $, !, %, *, ?, &, .)." })
 });
 
-export const loginSchema = adminSchema.pick({
-  username: true,
+export const loginSchema = authSchema.pick({
+  email: true,
   password: true
 });

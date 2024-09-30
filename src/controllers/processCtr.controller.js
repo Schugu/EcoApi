@@ -1,15 +1,15 @@
 
-export class AdminController {
-  constructor({ adminModel }) {
-    this.adminModel = adminModel;
-  }
+export class ProcessCtrController {
+  constructor({ processCtrModel }) {
+    this.processCtrModel = processCtrModel;
+  };
 
   newProcessCtr = async (req, res) => {
     const { name, address, town } = req.body;
     const id_admin = req.session.user.id;
 
     try {
-      const result = await this.adminModel.newProcessCtr({ name, address, town, id_admin });
+      const result = await this.processCtrModel.newProcessCtr({ name, address, town, id_admin });
 
       if (!result) {
         return res.status(400).json({ message: "Error al registrar un centro de procesamiento." });
@@ -29,13 +29,13 @@ export class AdminController {
     } catch (error) {
       return res.status(500).json({ message: "Error interno del servidor.", error: error.message });
     }
-  }
+  };
 
   getAllProcessCtr = async (req, res) => {
     const { name, address, town, id_admin } = req.query;
 
     try {
-      const result = await this.adminModel.getAllProcessCtr({ name, address, town, id_admin });
+      const result = await this.processCtrModel.getAllProcessCtr({ name, address, town, id_admin });
 
       if (!result) {
         return res.status(400).json({ message: "No se encontraron centros de procesamiento." });
@@ -46,7 +46,7 @@ export class AdminController {
     } catch (error) {
       return res.status(500).json({ message: "Error interno del servidor.", error: error.message });
     }
-  }
+  };
 
   getProcessCtrById = async (req, res) => {
     const { id } = req.params;
@@ -56,7 +56,7 @@ export class AdminController {
     }
 
     try {
-      const result = await this.adminModel.getProcessCtrById({ id });
+      const result = await this.processCtrModel.getProcessCtrById({ id });
 
       if (!result) {
         return res.status(400).json({ message: `No se encontró el centro de procesamiento con el id: ${id}.` });
@@ -67,7 +67,7 @@ export class AdminController {
     } catch (error) {
       return res.status(500).json({ message: "Error interno del servidor.", error: error.message });
     }
-  }
+  };
 
   editProcessCtrById = async (req, res) => {
     const { id } = req.params;
@@ -78,7 +78,7 @@ export class AdminController {
     }
 
     try {
-      const result = await this.adminModel.editProcessCtrById({ id, name, address, town });
+      const result = await this.processCtrModel.editProcessCtrById({ id, name, address, town });
 
       if (!result) {
         return res.status(400).json({ message: `No se encontró el centro de procesamiento con el id: ${id}.` });
@@ -101,7 +101,7 @@ export class AdminController {
     } catch (error) {
       return res.status(500).json({ message: "Error interno del servidor.", error: error.message });
     }
-  }
+  };
 
   deleteProcessCtrById = async (req, res) => {
     const { id } = req.params;
@@ -112,7 +112,7 @@ export class AdminController {
     }
 
     try {
-      const result = await this.adminModel.deleteProcessCtrById({ id });
+      const result = await this.processCtrModel.deleteProcessCtrById({ id });
 
       if (!result) {
         return res.status(400).json({ message: "No se encontraron centros de procesamiento." });
@@ -123,8 +123,7 @@ export class AdminController {
     } catch (error) {
       return res.status(500).json({ message: "Error interno del servidor.", error: error.message });
     }
-  }
-
+  };
 
   assignWorkerToCenter = async (req, res) => {
     const { id } = req.params;
@@ -132,7 +131,7 @@ export class AdminController {
 
 
     try {
-      const result = await this.adminModel.assignWorkerToCenter({ id, worker_id });
+      const result = await this.processCtrModel.assignWorkerToCenter({ id, worker_id });
 
       if (!result) {
         return res.status(400).json({ message: "Error al registrar un centro de procesamiento." });
@@ -158,13 +157,13 @@ export class AdminController {
     }
 
 
-  }
+  };
 
   deleteWorkerToCenter = async (req, res) => {
     const { id, worker_id } = req.params;
 
     try {
-      const result = await this.adminModel.deleteWorkerToCenter({ id, worker_id });
+      const result = await this.processCtrModel.deleteWorkerToCenter({ id, worker_id });
 
 
       if (!result) {
@@ -190,13 +189,13 @@ export class AdminController {
     } catch (error) {
       return res.status(500).json({ message: "Error interno del servidor.", error: error.message });
     }
-  }
+  };
 
   getAllWorkersOnProcessCtr = async (req, res) => {
     const { id } = req.params;
 
     try {
-      const result = await this.adminModel.getAllWorkersOnProcessCtr({ id });
+      const result = await this.processCtrModel.getAllWorkersOnProcessCtr({ id });
 
       if (!result) {
         res.status(400).json({ message: "No se encontraron usuarios asignados al centro de procesamiento." });
@@ -210,11 +209,11 @@ export class AdminController {
     } catch (error) {
       return res.status(500).json({ message: "Error interno del servidor.", error: error.message });
     }
-  }
+  };
 
   getAllWorkersAssignments = async (req, res) => {
     try {
-      const result = await this.adminModel.getAllWorkersAssignments();
+      const result = await this.processCtrModel.getAllWorkersAssignments();
 
       if (!result) {
         res.status(400).json({ message: "No se encontraron usuarios asignados al centro de procesamiento." });
@@ -224,5 +223,5 @@ export class AdminController {
     } catch (error) {
       return res.status(500).json({ message: "Error interno del servidor.", error: error.message });
     }
-  }
+  };
 }

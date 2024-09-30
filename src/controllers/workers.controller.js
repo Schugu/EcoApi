@@ -1,25 +1,25 @@
-import jwt from 'jsonwebtoken';
-
 export class WorkerController {
   constructor({ workerModel }) {
     this.workerModel = workerModel;
   }
   
-  register = async (req, res) => {
+  newWorker = async (req, res) => {
     const { username, email, password } = req.body;
+    const id_admin = req.session.user.id;
+
     try {
-      const result = await this.workerModel.register({ username, email, password });
+      const result = await this.workerModel.newWorker({ username, email, password, id_admin });
 
       if (!result) {
-        return res.status(400).json({ message: "Error al registrarse." });
+        return res.status(400).json({ message: "Error al registrar un nuevo operador." });
       }
 
       if (result.usernameExists) {
-        return res.status(400).json({ message: `Ya existe un usuario con el username: ${username}` });
+        return res.status(400).json({ message: `Ya existe un operador con el username: ${username}` });
       }
 
       if (result.emailExists) {
-        return res.status(400).json({ message: `Ya existe un usuario con el email: ${email}` });
+        return res.status(400).json({ message: `Ya existe un operador con el email: ${email}` });
       }
 
 
@@ -28,59 +28,99 @@ export class WorkerController {
     } catch (error) {
       return res.status(500).json({ message: "Error interno del servidor.", error: error.message });
     }
-  }
+  };
 
-  login = async (req, res) => {
-    const { username, password } = req.body;
+  getAllWorkers = async (req, res) => {
+    const { username, email, id_admin } = req.query;
+
     try {
-      const user = await this.workerModel.login({ username, password });
+      const result = await this.workerModel.getAllWorkers({ username, email, id_admin });
 
-      if (!user) {
-        return res.status(400).json({ message: "Error al iniciar sesión." });
+      if (!result) {
+        return res.status(400).json({ message: "No se encontraron usuarios." });
       }
 
-      if (user.notExists) {
-        return res.status(400).json({ message: `No existe ningún usuario con el username: ${username}` });
-      }
-
-      if (user.notValid) {
-        return res.status(400).json({ message: `Datos incorrectos.` });
-      }
-
-      const token = jwt.sign({ id: user.id, username: user.username, email: user.email },
-        process.env.SECRET_JWT_KEY,
-        {
-          expiresIn: "1h"
-        });
-
-
-      res
-        .cookie('access_token', token, {
-          httpOnly: true, // la cookie solo se puede acceder en el servidor
-          secure: process.env.NODE_ENV === 'production', // la cookie solo se puede acceder en https
-          sameSite: 'strict', // la cookie solo se puede acceder del mismo dominio
-          maxAge: 1000 * 60 * 60 // La cookie solo tiene validez de 1 hora
-        })
-        .json(user);
+      res.json(result);
 
     } catch (error) {
       return res.status(500).json({ message: "Error interno del servidor.", error: error.message });
     }
-  }
+  };
 
-  protected = async (req, res) => {
-    const { user } = req.session;
+  getWorkerById = async (req, res) => {
+    const { id } = req.params;
 
-    if (!user) {
-      return res.status(403).send('Acceso no autorizado.')
+    if (!id) {
+      return res.status(400).json({ message: "Ingrese la id." });
     }
 
-    res.json(user);
-  }
+    try {
+      const result = await this.workerModel.getWorkerById({ id });
 
-  logout = async (req, res) => {
-    res
-      .clearCookie('access_token')
-      .json({ message: 'Sesión cerrada.' });
-  }
+      if (!result) {
+        return res.status(400).json({ message: `No se encontró el worker con el id: ${id}.` });
+      }
+
+      res.json(result);
+
+    } catch (error) {
+      return res.status(500).json({ message: "Error interno del servidor.", error: error.message });
+    }
+  };
+
+  editWorkerById = async (req, res) => {
+    const { id } = req.params;
+    const { username, email, password } = req.body;
+
+    if (!id) {
+      return res.status(400).json({ message: "Ingrese la id." });
+    }
+
+    try {
+      const result = await this.workerModel.editWorkerById({ id, username, email, password });
+
+      if (!result) {
+        return res.status(400).json({ message: `No se encontró el worker con el id: ${id}.` });
+      }
+
+      if (result.usernameExists) {
+        return res.status(400).json({ message: `Ya existe un operador con el username: ${username}` });
+      }
+
+      if (result.emailExists) {
+        return res.status(400).json({ message: `Ya existe un operador con el email: ${email}` });
+      }
+
+      if (result.notChanged) {
+        return res.status(304).json({ message: `No se realizaron cambios.` });
+      }
+
+      res.json(result);
+
+    } catch (error) {
+      return res.status(500).json({ message: "Error interno del servidor.", error: error.message });
+    }
+  };
+
+  deleteWorkerById = async (req, res) => {
+    const { id } = req.params;
+
+
+    if (!id) {
+      return res.status(400).json({ message: "Ingrese la id." });
+    }
+
+    try {
+      const result = await this.workerModel.deleteWorkerById({ id });
+
+      if (!result) {
+        return res.status(400).json({ message: "No se encontraron usuarios." });
+      }
+
+      res.json({ message: `Worker con el id: ${id} eliminado existosamente.` });
+
+    } catch (error) {
+      return res.status(500).json({ message: "Error interno del servidor.", error: error.message });
+    }
+  };
 }
