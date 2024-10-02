@@ -107,7 +107,7 @@ export class GreenPointModel {
     }
   }
 
-  static async getProcessCtrById({ id }) {
+  static async getById({ id }) {
     try {
       const [dataGreenPoint] = await connection.query(
         `SELECT BIN_TO_UUID(id) as id, name, address, town, BIN_TO_UUID(id_admin) as id_admin, created_at FROM green_point WHERE id = UUID_TO_BIN(?)`,
@@ -125,7 +125,7 @@ export class GreenPointModel {
     }
   }
 
-  static async editProcessCtrById({ id, name, address, town }) {
+  static async edit({ id, name, address, town }) {
     try {
       const [dataGreenPoint] = await connection.query(
         `SELECT * FROM green_point WHERE id = UUID_TO_BIN(?)`,
@@ -194,11 +194,11 @@ export class GreenPointModel {
       return updatedProcessCtr;
     } catch (error) {
       console.log(error);
-      throw new Error('Error al editar el centro de procesamiento.');
+      throw new Error('Error al editar el punto verde.');
     }
   }
 
-  static async deleteProcessCtrById({ id }) {
+  static async delete({ id }) {
     try {
       const [dataGreenPoint] = await connection.query(
         `SELECT * FROM green_point WHERE id = UUID_TO_BIN(?)`,
@@ -216,11 +216,11 @@ export class GreenPointModel {
 
       return dataGreenPoint;
     } catch (error) {
-      throw new Error('Error al eliminar el centro de procesamiento.');
+      throw new Error('Error al eliminar el punto verde.');
     }
   }
 
-  static async assignWorkerToCenter({ id, worker_id }) {
+  static async assignWorker({ id, worker_id }) {
     try {
       const [dataGreenPoint] = await connection.query(
         `SELECT * FROM green_point WHERE id = UUID_TO_BIN(?)`,
@@ -228,7 +228,7 @@ export class GreenPointModel {
       );
 
       if (dataGreenPoint.length === 0) {
-        return { processCtrNotExists: true };
+        return { greenPointNotExists: true };
       }
 
       const [dataWorker] = await connection.query(
@@ -240,17 +240,17 @@ export class GreenPointModel {
         return { workerNotExists: true };
       }
 
-      const [foundWorkerOnProcessCtr] = await connection.query(
-        `SELECT * FROM processing_center_workers WHERE worker_id = UUID_TO_BIN(?)`, [worker_id]
+      const [foundWorkerOnGreenPoint] = await connection.query(
+        `SELECT * FROM green_point_workers WHERE worker_id = UUID_TO_BIN(?)`, [worker_id]
       );
 
-      if (foundWorkerOnProcessCtr.length > 0) {
+      if (foundWorkerOnGreenPoint.length > 0) {
         return { isWorkerAssigned: true }
       }
 
 
       await connection.query(
-        `INSERT INTO processing_center_workers (worker_id, process_center_id)
+        `INSERT INTO green_point_workers (worker_id, green_point_id)
          VALUES (UUID_TO_BIN(?), UUID_TO_BIN(?))`,
         [worker_id, id]
       );
@@ -258,9 +258,9 @@ export class GreenPointModel {
       const [assignedWorker] = await connection.query(
         `SELECT BIN_TO_UUID(id) as id,
                 BIN_TO_UUID(worker_id) as worker_id, 
-                BIN_TO_UUID(process_center_id) as process_center_id,
+                BIN_TO_UUID(green_point_id) as green_point_id,
                 assigned_at
-         FROM processing_center_workers 
+         FROM green_point_workers 
          WHERE worker_id = UUID_TO_BIN(?)`,
         [worker_id]
       );
@@ -268,11 +268,11 @@ export class GreenPointModel {
       return assignedWorker;
     } catch (error) {
       console.log(error);
-      throw new Error('Error al asignar un worker en el centro de procesamiento.');
+      throw new Error('Error al asignar un worker en el punto verde.');
     }
   }
 
-  static async deleteWorkerToCenter({ id, worker_id }) {
+  static async unassignWorker({ id, worker_id }) {
     try {
       const [dataGreenPoint] = await connection.query(
         `SELECT * FROM green_point WHERE id = UUID_TO_BIN(?)`,
@@ -280,7 +280,7 @@ export class GreenPointModel {
       );
 
       if (dataGreenPoint.length === 0) {
-        return { processCtrNotExists: true };
+        return { greenPointNotExists: true };
       }
 
       const [dataWorker] = await connection.query(
@@ -292,26 +292,26 @@ export class GreenPointModel {
         return { workerNotExists: true };
       }
 
-      const [foundWorkerOnProcessCtr] = await connection.query(
-        `SELECT * FROM processing_center_workers WHERE worker_id = UUID_TO_BIN(?)`, [worker_id]
+      const [foundWorkerOnGreenPoint] = await connection.query(
+        `SELECT * FROM green_point_workers WHERE worker_id = UUID_TO_BIN(?)`, [worker_id]
       );
 
-      if (foundWorkerOnProcessCtr.length === 0) {
+      if (foundWorkerOnGreenPoint.length === 0) {
         return { workerNotAssigned: true };
       }
 
       await connection.query(
-        `DELETE FROM processing_center_workers WHERE worker_id = UUID_TO_BIN(?)`,
+        `DELETE FROM green_point_workers WHERE worker_id = UUID_TO_BIN(?)`,
         [worker_id]
       );
 
       return { ok: true };
     } catch (error) {
-      throw new Error('Error al asignar un worker en el centro de procesamiento.');
+      throw new Error('Error al des-asignar un worker en el punto verde.');
     }
   }
 
-  static async getAllWorkersOnProcessCtr({ id }) {
+  static async getWorkers({ id }) {
     try {
       const [dataGreenPoint] = await connection.query(
         `SELECT * FROM green_point WHERE id = UUID_TO_BIN(?)`,
@@ -319,22 +319,22 @@ export class GreenPointModel {
       );
 
       if (dataGreenPoint.length === 0) {
-        return { processCtrNotExists: true };
+        return { greenPointNotExists: true };
       }
 
-      const [dataWorkersOnProccesCtr] = await connection.query(
+      const [dataWorkersOnGreenPoint] = await connection.query(
         `SELECT BIN_TO_UUID(w.id) AS worker_id,            
           w.username AS worker_username, 
-          BIN_TO_UUID(pc.id) AS process_center_id,    
-          pc.name AS process_center_name, 
-          pcw.assigned_at
-        FROM processing_center_workers pcw
-        JOIN worker w ON pcw.worker_id = w.id
-        JOIN green_point pc ON pcw.process_center_id = pc.id
+          BIN_TO_UUID(pc.id) AS green_point_id,    
+          pc.name AS green_point_name, 
+          gpw.assigned_at
+        FROM green_point_workers gpw
+        JOIN worker w ON gpw.worker_id = w.id
+        JOIN green_point pc ON gpw.green_point_id = pc.id
         WHERE pc.id = UUID_TO_BIN(?)`, [id]
       )
 
-      return dataWorkersOnProccesCtr;
+      return dataWorkersOnGreenPoint;
 
 
     } catch (error) {
@@ -347,12 +347,12 @@ export class GreenPointModel {
       const [dataWorkersOnProccesCtr] = await connection.query(
         `SELECT BIN_TO_UUID(w.id) AS worker_id,    
           w.username AS worker_username,       
-          BIN_TO_UUID(pc.id) AS process_center_id,   
-          pc.name AS process_center_name, 
-          pcw.assigned_at                           
-        FROM processing_center_workers pcw
-        JOIN worker w ON pcw.worker_id = w.id          
-        JOIN green_point pc ON pcw.process_center_id = pc.id`
+          BIN_TO_UUID(pc.id) AS green_point_id,   
+          pc.name AS green_point_name, 
+          gpw.assigned_at                           
+        FROM green_point_workers gpw
+        JOIN worker w ON gpw.worker_id = w.id          
+        JOIN green_point pc ON gpw.green_point_id = pc.id`
       )
 
       return dataWorkersOnProccesCtr;

@@ -13,18 +13,18 @@ export const createGreenPointRouter = ({ greenPointModel }) => {
 
   const greenPointController = new GreenPointController({ greenPointModel });
 
-  // Administrar processing centers
+  // Administrar green points
   greenPointRouter.post('/', validateSchema(GreenPointSchema), greenPointController.new);
   greenPointRouter.get('/', greenPointController.getAll);
-  greenPointRouter.get('/:id', validateParamsSchema(idSchemaUUID), greenPointController.getProcessCtrById);
-  greenPointRouter.patch('/:id', validateParamsSchema(idSchemaUUID), validateSchema(updatedGreenPointSchema), greenPointController.editProcessCtrById);
-  greenPointRouter.delete('/:id', validateParamsSchema(idSchemaUUID), greenPointController.deleteProcessCtrById);
+  greenPointRouter.get('/:id', validateParamsSchema(idSchemaUUID), greenPointController.getById);
+  greenPointRouter.patch('/:id', validateParamsSchema(idSchemaUUID), validateSchema(updatedGreenPointSchema), greenPointController.edit);
+  greenPointRouter.delete('/:id', validateParamsSchema(idSchemaUUID), greenPointController.delete);
 
-  // Administración de workers en process centers
-  greenPointRouter.post('/:id/workers', validateParamsSchema(idSchemaUUID), validateSchema(worker_idSchemaUUID), greenPointController.assignWorkerToCenter);
-  greenPointRouter.get('/:id/workers', validateParamsSchema(idSchemaUUID), greenPointController.getAllWorkersOnProcessCtr);
+  // Administración de workers en green points
+  greenPointRouter.post('/:id/workers', validateParamsSchema(idSchemaUUID), validateSchema(worker_idSchemaUUID), greenPointController.assignWorker);
+  greenPointRouter.get('/:id/workers', validateParamsSchema(idSchemaUUID), greenPointController.getWorkers);
   greenPointRouter.get('/workers/assignments', greenPointController.getAllWorkersAssignments);
-  greenPointRouter.delete('/:id/workers/:worker_id', validateParamsSchema(idAndWorkerIdSchemaUUID), greenPointController.deleteWorkerToCenter);
+  greenPointRouter.delete('/:id/workers/:worker_id', validateParamsSchema(idAndWorkerIdSchemaUUID), greenPointController.unassignWorker);
 
   return greenPointRouter;
 }

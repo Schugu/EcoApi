@@ -48,7 +48,7 @@ export class GreenPointController {
     }
   };
 
-  getProcessCtrById = async (req, res) => {
+  getById = async (req, res) => {
     const { id } = req.params;
 
     if (!id) {
@@ -56,10 +56,10 @@ export class GreenPointController {
     }
 
     try {
-      const result = await this.processCtrModel.getProcessCtrById({ id });
+      const result = await this.greenPointModel.getById({ id });
 
       if (!result) {
-        return res.status(400).json({ message: `No se encontró el centro de procesamiento con el id: ${id}.` });
+        return res.status(400).json({ message: `No se encontró el punto verde con el id: ${id}.` });
       }
 
       res.json(result);
@@ -69,7 +69,7 @@ export class GreenPointController {
     }
   };
 
-  editProcessCtrById = async (req, res) => {
+  edit = async (req, res) => {
     const { id } = req.params;
     const { name, address, town } = req.body;
 
@@ -78,18 +78,18 @@ export class GreenPointController {
     }
 
     try {
-      const result = await this.processCtrModel.editProcessCtrById({ id, name, address, town });
+      const result = await this.greenPointModel.edit({ id, name, address, town });
 
       if (!result) {
-        return res.status(400).json({ message: `No se encontró el centro de procesamiento con el id: ${id}.` });
+        return res.status(400).json({ message: `No se encontró el punto verde con el id: ${id}.` });
       }
 
       if (result.nameExists) {
-        return res.status(400).json({ message: `Ya existe un centro de procesamiento con el nombre: ${name}` });
+        return res.status(400).json({ message: `Ya existe un punto verde con el nombre: ${name}` });
       }
 
       if (result.addressExists) {
-        return res.status(400).json({ message: `Ya existe un centro de procesamiento con la dirección: ${address}` });
+        return res.status(400).json({ message: `Ya existe un punto verde con la dirección: ${address}` });
       }
 
       if (result.notChanged) {
@@ -103,42 +103,40 @@ export class GreenPointController {
     }
   };
 
-  deleteProcessCtrById = async (req, res) => {
+  delete = async (req, res) => {
     const { id } = req.params;
-
 
     if (!id) {
       return res.status(400).json({ message: "Ingrese la id." });
     }
 
     try {
-      const result = await this.processCtrModel.deleteProcessCtrById({ id });
+      const result = await this.greenPointModel.delete({ id });
 
       if (!result) {
-        return res.status(400).json({ message: "No se encontraron centros de procesamiento." });
+        return res.status(400).json({ message: "No se encontraron puntos verdes." });
       }
 
-      res.json({ message: `Centro de procesamiento con el id: ${id} eliminado existosamente.` });
+      res.json({ message: `Punto verde con el id: ${id} eliminado existosamente.` });
 
     } catch (error) {
       return res.status(500).json({ message: "Error interno del servidor.", error: error.message });
     }
   };
 
-  assignWorkerToCenter = async (req, res) => {
+  assignWorker = async (req, res) => {
     const { id } = req.params;
     const { worker_id } = req.body;
 
-
     try {
-      const result = await this.processCtrModel.assignWorkerToCenter({ id, worker_id });
+      const result = await this.greenPointModel.assignWorker({ id, worker_id });
 
       if (!result) {
-        return res.status(400).json({ message: "Error al registrar un centro de procesamiento." });
+        return res.status(400).json({ message: "Error al registrar un punto verde." });
       }
 
-      if (result.processCtrNotExists) {
-        return res.status(400).json({ message: `No existe un centro de procesamiento con el id: ${id}` });
+      if (result.greenPointNotExists) {
+        return res.status(400).json({ message: `No existe un punto verde con el id: ${id}` });
       }
 
       if (result.workerNotExists) {
@@ -146,12 +144,10 @@ export class GreenPointController {
       }
 
       if (result.isWorkerAssigned) {
-        return res.status(400).json({ message: `El worker con el id: ${worker_id} ya esta asignado a un centro de procesamiento.` });
+        return res.status(400).json({ message: `El worker con el id: ${worker_id} ya esta asignado a un punto verde.` });
       }
 
-
       res.json(result);
-
     } catch (error) {
       return res.status(500).json({ message: "Error interno del servidor.", error: error.message });
     }
@@ -159,19 +155,39 @@ export class GreenPointController {
 
   };
 
-  deleteWorkerToCenter = async (req, res) => {
+  getWorkers = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+      const result = await this.greenPointModel.getWorkers({ id });
+
+      if (!result) {
+        res.status(400).json({ message: "No se encontraron usuarios asignados al punto verde." });
+      }
+
+      if (result.greenPointNotExists) {
+        return res.status(400).json({ message: `No existe un punto verde con el id: ${id}` });
+      }
+
+      res.json(result);
+    } catch (error) {
+      return res.status(500).json({ message: "Error interno del servidor.", error: error.message });
+    }
+  };
+
+  unassignWorker = async (req, res) => {
     const { id, worker_id } = req.params;
 
     try {
-      const result = await this.processCtrModel.deleteWorkerToCenter({ id, worker_id });
+      const result = await this.greenPointModel.unassignWorker({ id, worker_id });
 
 
       if (!result) {
-        return res.status(400).json({ message: "Error al registrar un centro de procesamiento." });
+        return res.status(400).json({ message: "Error al des-asignar el worker del punto verde." });
       }
 
-      if (result.processCtrNotExists) {
-        return res.status(400).json({ message: `No existe un centro de procesamiento con el id: ${id}` });
+      if (result.greenPointNotExists) {
+        return res.status(400).json({ message: `No existe un punto verde con el id: ${id}` });
       }
 
       if (result.workerNotExists) {
@@ -179,7 +195,7 @@ export class GreenPointController {
       }
 
       if (result.workerNotAssigned) {
-        return res.status(400).json({ message: `El worker con el id: ${worker_id} no esta asignado a un centro de procesamiento.` });
+        return res.status(400).json({ message: `El worker con el id: ${worker_id} no esta asignado a un punto verde.` });
       }
 
       if (result.ok) {
@@ -191,32 +207,12 @@ export class GreenPointController {
     }
   };
 
-  getAllWorkersOnProcessCtr = async (req, res) => {
-    const { id } = req.params;
-
-    try {
-      const result = await this.processCtrModel.getAllWorkersOnProcessCtr({ id });
-
-      if (!result) {
-        res.status(400).json({ message: "No se encontraron usuarios asignados al centro de procesamiento." });
-      }
-
-      if (result.processCtrNotExists) {
-        return res.status(400).json({ message: `No existe un centro de procesamiento con el id: ${id}` });
-      }
-
-      res.json(result);
-    } catch (error) {
-      return res.status(500).json({ message: "Error interno del servidor.", error: error.message });
-    }
-  };
-
   getAllWorkersAssignments = async (req, res) => {
     try {
-      const result = await this.processCtrModel.getAllWorkersAssignments();
+      const result = await this.greenPointModel.getAllWorkersAssignments();
 
       if (!result) {
-        res.status(400).json({ message: "No se encontraron usuarios asignados al centro de procesamiento." });
+        res.status(400).json({ message: "No se encontraron usuarios asignados al punto verde." });
       }
 
       res.json(result);
