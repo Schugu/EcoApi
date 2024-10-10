@@ -8,9 +8,9 @@ export class WorkerModel {
     try {
       const [dataWorker] = await connection.query(
         `SELECT BIN_TO_UUID(w.id) AS id, w.username, w.email, w.password, w.created_at, 
-          BIN_TO_UUID(pcw.process_center_id) AS process_center_id, pcw.assigned_at
+          BIN_TO_UUID(gpw.green_point_id) AS green_point_id, gpw.assigned_at
           FROM worker w
-          JOIN processing_center_workers pcw ON w.id = pcw.worker_id
+          JOIN green_point_workers gpw ON w.id = gpw.worker_id
           WHERE LOWER(w.email) = LOWER(?)`,
         [email]
       );

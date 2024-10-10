@@ -20,7 +20,7 @@ export class AuthController {
       } else {
         user = await this.workerModel.findOneAsigned({ email });
         if (user) {
-          userType = 'workerAsigned';
+          userType = 'workerAssigned';
         } else {
           return res.status(404).json({ message: 'User not found' });
         }
@@ -31,10 +31,9 @@ export class AuthController {
         return res.status(401).json({ message: 'Invalid credentials' });
       }
   
+      const { password: _, ...publicUser } = user;
       const token = jwt.sign({ 
-        id: user.id, 
-        username: user.username, 
-        email: user.email,
+        ...publicUser,
         userType
       },
         process.env.SECRET_JWT_KEY,
