@@ -45,7 +45,7 @@ export class GreenPointModel {
   static async getAll({ name, address, town, id_admin }) {
     if (name) {
       const [dataGreenPoint] = await connection.query(
-        `SELECT BIN_TO_UUID(id) as id, name, address, town, BIN_TO_UUID(id_admin) as id_admin, created_at FROM green_point WHERE LOWER(name) = LOWER(?)`,
+        `SELECT BIN_TO_UUID(id) as id, name, address, town, BIN_TO_UUID(id_admin) as id_admin, DATE_FORMAT(created_at, '%d/%m/%Y') as created_at FROM green_point WHERE LOWER(name) = LOWER(?)`,
         [name]
       );
 
@@ -58,7 +58,7 @@ export class GreenPointModel {
 
     if (address) {
       const [dataGreenPoint] = await connection.query(
-        `SELECT BIN_TO_UUID(id) as id, name, address, town, BIN_TO_UUID(id_admin) as id_admin, created_at FROM green_point WHERE LOWER(address) = LOWER(?)`,
+        `SELECT BIN_TO_UUID(id) as id, name, address, town, BIN_TO_UUID(id_admin) as id_admin, DATE_FORMAT(created_at, '%d/%m/%Y') as created_at FROM green_point WHERE LOWER(address) = LOWER(?)`,
         [address]
       );
 
@@ -71,7 +71,7 @@ export class GreenPointModel {
 
     if (town) {
       const [dataGreenPoint] = await connection.query(
-        `SELECT BIN_TO_UUID(id) as id, name, address, town, BIN_TO_UUID(id_admin) as id_admin, created_at FROM green_point WHERE LOWER(town) = LOWER(?)`,
+        `SELECT BIN_TO_UUID(id) as id, name, address, town, BIN_TO_UUID(id_admin) as id_admin, DATE_FORMAT(created_at, '%d/%m/%Y') as created_at FROM green_point WHERE LOWER(town) = LOWER(?)`,
         [town]
       );
 
@@ -84,7 +84,7 @@ export class GreenPointModel {
 
     if (id_admin) {
       const [dataGreenPoint] = await connection.query(
-        `SELECT BIN_TO_UUID(id) as id, name, address, town, BIN_TO_UUID(id_admin) as id_admin, created_at FROM green_point WHERE id_admin = UUID_TO_BIN(?)`,
+        `SELECT BIN_TO_UUID(id) as id, name, address, town, BIN_TO_UUID(id_admin) as id_admin, DATE_FORMAT(created_at, '%d/%m/%Y') as created_at FROM green_point WHERE id_admin = UUID_TO_BIN(?)`,
         [id_admin]
       );
 
@@ -97,7 +97,7 @@ export class GreenPointModel {
 
     try {
       const [dataGreenPoint] = await connection.query(
-        'SELECT BIN_TO_UUID(id) as id, name, address, town, BIN_TO_UUID(id_admin) as id_admin, created_at FROM green_point'
+        `SELECT BIN_TO_UUID(id) as id, name, address, town, BIN_TO_UUID(id_admin) as id_admin, DATE_FORMAT(created_at, '%d/%m/%Y') as created_at FROM green_point`
       )
 
       return dataGreenPoint;
