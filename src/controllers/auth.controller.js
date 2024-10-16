@@ -9,11 +9,11 @@ export class AuthController {
 
   login = async (req, res) => {
     const { email, password } = req.body;
-  
+
     try {
       let user;
       let userType;
-  
+
       user = await this.adminModel.findOne({ email });
       if (user) {
         userType = 'admin';
@@ -30,9 +30,9 @@ export class AuthController {
       if (!isMatch) {
         return res.status(401).json({ message: 'Invalid credentials' });
       }
-  
+
       const { password: _, ...publicUser } = user;
-      const token = jwt.sign({ 
+      const token = jwt.sign({
         ...publicUser,
         userType
       },
@@ -40,20 +40,20 @@ export class AuthController {
         {
           expiresIn: "1h"
         });
-  
+
       res
         .cookie('access_token', token, {
-          httpOnly: true,
+          httpOnly: false,
           secure: process.env.NODE_ENV === 'production',
           sameSite: 'strict',
           maxAge: 1000 * 60 * 60 // 1 hora
         })
-        .json(user);
+        .json(user = { ...publicUser, userType });
     } catch (error) {
       return res.status(500).json({ message: "Error interno del servidor.", error: error.message });
     }
   };
-  
+
   protected = async (req, res) => {
     const { user } = req.session;
 
@@ -69,4 +69,41 @@ export class AuthController {
       .clearCookie('access_token')
       .json({ message: 'Sesión cerrada.' });
   };
+
+  verifyToken = async (req, res) => {
+    const { access_token } = req.cookies;
+  
+    if (!access_token) return res.status(401).json({ message: "Unauthorized" });
+  
+    jwt.verify(access_token,  process.env.SECRET_JWT_KEY, async (err, decodedToken) => {
+      if (err) return res.status(401).json({ message: "Unauthorized" });
+  
+      const { email } = decodedToken; 
+  
+      let user;
+      let userType;
+  
+      try {
+        user = await this.adminModel.findOne({ email });
+        if (user) {
+          userType = 'admin';
+        } else {
+          user = await this.workerModel.findOneAsigned({ email });
+          if (user) {
+            userType = 'workerAssigned';
+          } else {
+            return res.status(404).json({ message: 'User not found' });
+          }
+        }
+  
+        const { password: _, ...publicUser } = user; 
+  
+        return res.status(200).json({ ...publicUser, userType });
+      } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Server error' });
+      }
+    });
+  };
+  
 }

@@ -8,7 +8,7 @@ export class DonationController {
     const worker_id = req.session.user.id;
     const { green_point_id } = req.session.user;
     const { donor_id, items } = req.body;
-
+    
     try {
       const result = await this.donationModel.new({ worker_id, green_point_id, donor_id, items });
 

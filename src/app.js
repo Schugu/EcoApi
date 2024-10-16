@@ -42,7 +42,7 @@ export const createApp = ({ adminModel, workerModel, greenPointModel, donationMo
 
   app.use('/api', createAuthRouter({ adminModel, workerModel }));
   app.use('/api/admin', authRequire(['admin']), createAdminRouter({ adminModel }));
-  app.use('/api/worker', authRequire(['admin']), createWorkerRouter({ workerModel }));
+  app.use('/api/workers', authRequire(['admin']), createWorkerRouter({ workerModel }));
   app.use('/api/greenPoint', authRequire(['admin']), createGreenPointRouter({ greenPointModel }));
   app.use('/api/donation', authRequire(['workerAssigned']), createDonationRouter({ donationModel }));
   app.use('/api/processCtr', authRequire(['admin']), createProcessCtrRouter({ processCtrModel }));

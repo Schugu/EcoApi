@@ -69,7 +69,9 @@ export class WorkerModel {
   static async getAllWorkers({ username, email, id_admin }) {
     if (username) {
       const [dataWorkers] = await connection.query(
-        `SELECT BIN_TO_UUID(id) as id, username, email, password, BIN_TO_UUID(id_admin) as id_admin, created_at, passwordChanged FROM worker WHERE username = ?`,
+        `SELECT BIN_TO_UUID(id) as id, username, email, BIN_TO_UUID(id_admin) as id_admin, 
+         DATE_FORMAT(created_at, '%d/%m/%Y') as created_at, passwordChanged 
+         FROM worker WHERE username = ?`,
         [username]
       );
 
@@ -82,7 +84,7 @@ export class WorkerModel {
 
     if (email) {
       const [dataWorkers] = await connection.query(
-        `SELECT BIN_TO_UUID(id) as id, username, email, password, BIN_TO_UUID(id_admin) as id_admin, created_at, passwordChanged FROM worker WHERE email = ?`,
+        `SELECT BIN_TO_UUID(id) as id, username, email, password, BIN_TO_UUID(id_admin) as id_admin, DATE_FORMAT(created_at, '%d/%m/%Y') as created_at, passwordChanged FROM worker WHERE email = ?`,
         [email]
       );
 
@@ -95,7 +97,7 @@ export class WorkerModel {
 
     if (id_admin) {
       const [dataWorkers] = await connection.query(
-        `SELECT BIN_TO_UUID(id) as id, username, email, password, BIN_TO_UUID(id_admin) as id_admin, created_at, passwordChanged FROM worker WHERE id_admin = UUID_TO_BIN(?)`,
+        `SELECT BIN_TO_UUID(id) as id, username, email, password, BIN_TO_UUID(id_admin) as id_admin, DATE_FORMAT(created_at, '%d/%m/%Y') as created_at, passwordChanged FROM worker WHERE id_admin = UUID_TO_BIN(?)`,
         [id_admin]
       );
 
@@ -108,7 +110,7 @@ export class WorkerModel {
 
     try {
       const [dataWorkers] = await connection.query(
-        'SELECT BIN_TO_UUID(id) as id, username, email, password, BIN_TO_UUID(id_admin) as id_admin, created_at, passwordChanged FROM worker'
+        `SELECT BIN_TO_UUID(id) as id, username, email, password, BIN_TO_UUID(id_admin) as id_admin, DATE_FORMAT(created_at, '%d/%m/%Y') as created_at, passwordChanged FROM worker`
       )
 
       return dataWorkers;
